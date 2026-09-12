@@ -31,12 +31,13 @@
         }
         #ui {
             position: absolute; top: 10px; left: 10px; color: white;
-            font-size: 15px; font-weight: bold; background: rgba(0, 0, 0, 0.65);
+            font-size: 14px; font-weight: bold; background: rgba(0, 0, 0, 0.65);
             padding: 8px 14px; border-radius: 10px; pointer-events: none;
             border: 1px solid rgba(255,255,255,0.2);
-            display: flex; gap: 10px; flex-direction: column; z-index: 5;
+            display: flex; gap: 6px; flex-direction: column; z-index: 5;
         }
         #hearts { font-size: 18px; }
+        #high-score-board { font-size: 12px; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px; }
         #damage-flash {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(239, 68, 68, 0.3); pointer-events: none; display: none; z-index: 4;
@@ -66,26 +67,26 @@
         }
         .weapon-btn.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; }
 
-        /* KOSKETUSOHJAIMET MOBIILILLE */
+        /* KOSKETUSOHJAIMET */
         #touch-controls { display: none; z-index: 10; }
         #joystick-zone {
-            position: absolute; bottom: 20px; left: 20px; width: 120px; height: 120px;
-            background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.3);
+            position: absolute; bottom: 25px; left: 20px; width: 120px; height: 120px;
+            background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.4);
             border-radius: 50%; touch-action: none;
         }
         #joystick-knob {
             position: absolute; top: 35px; left: 35px; width: 50px; height: 50px;
-            background: #38bdf8; border-radius: 50%; opacity: 0.8; pointer-events: none;
+            background: #38bdf8; border-radius: 50%; opacity: 0.85; pointer-events: none;
         }
         #action-buttons {
-            position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px;
+            position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end;
         }
         .touch-btn {
-            width: 60px; height: 60px; border-radius: 50%; color: white; font-weight: bold;
+            width: 58px; height: 58px; border-radius: 50%; color: white; font-weight: bold;
             font-size: 20px; border: 2px solid white; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); touch-action: manipulation;
         }
-        #btn-shoot { background: #ef4444; width: 75px; height: 75px; font-size: 26px; }
+        #btn-shoot { background: #ef4444; width: 75px; height: 75px; font-size: 28px; }
         #btn-jump { background: #3b82f6; }
         #btn-car { background: #facc15; color: black; }
         #btn-door { background: #10b981; }
@@ -101,7 +102,7 @@
     <div id="ui">
         <div>Terveys: <span id="hearts">❤️❤️❤️❤️❤️</span></div>
         <div>Pisteet: <span id="score">0</span></div>
-        <div>🏆 Paras: <span id="high-score">0</span></div>
+        <div id="high-score-board">🏆 Paras: <span id="high-score">0</span></div>
     </div>
     <div id="feedback"></div>
     <div id="prompt">Paina E / 🚪</div>
@@ -110,8 +111,8 @@
         <h1>Thomaksen asepeli</h1>
         <p><b>Ammu PAHETTA (😈):</b> +5 p & +1 ❤️!</p>
         <p><b>Varo HYVÄÄ (😊):</b> -5 p!</p>
-        <p>Pelaa tietokoneella (WASD/Hiiri) tai iPhone-kosketusnäytöllä!</p>
-        <p style="margin-top: 15px; color: #38bdf8; font-weight: bold;">Kosketa ruutua aloittaaksesi!</p>
+        <p>Tietokone: WASD / Hiiri | iPhone: Kosketusohjaimet</p>
+        <p style="margin-top: 15px; color: #38bdf8; font-weight: bold;">Aloita koskettamalla ruutua!</p>
     </div>
 
     <div id="game-over-screen">
@@ -144,7 +145,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // MOBIILITUNNISTUS
         const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         if (isMobile) { document.getElementById('touch-controls').style.display = 'block'; }
 
@@ -160,6 +160,7 @@
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); scene.add(ambientLight);
         const sunLight = new THREE.DirectionalLight(0xfff5d6, 0.9);
         sunLight.position.set(120, 180, 80); sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048; sunLight.shadow.mapSize.height = 2048;
         scene.add(sunLight);
 
         function getTerrainHeight(x, z) {
@@ -169,7 +170,7 @@
         }
 
         function createHillyTerrain() {
-            const geo = new THREE.PlaneGeometry(800, 800, 60, 60); geo.rotateX(-Math.PI / 2);
+            const geo = new THREE.PlaneGeometry(800, 800, 80, 80); geo.rotateX(-Math.PI / 2);
             const pos = geo.attributes.position;
             for (let i = 0; i < pos.count; i++) {
                 const x = pos.getX(i); const z = pos.getZ(i);
@@ -181,7 +182,55 @@
         }
         createHillyTerrain();
 
-        // --- 2. KÄSI JA ASEET ---
+        function createNatureDetails() {
+            const rockGeo = new THREE.DodecahedronGeometry(1.5, 1);
+            const rockMat = new THREE.MeshLambertMaterial({ color: 0x64748b });
+            const bushGeo = new THREE.SphereGeometry(1.2, 8, 8);
+            const bushMat = new THREE.MeshLambertMaterial({ color: 0x16a34a });
+
+            for (let i = 0; i < 80; i++) {
+                const rx = (Math.random() - 0.5) * 500;
+                const rz = (Math.random() - 0.5) * 500;
+                if (Math.abs(rx) < 140 && Math.abs(rz) < 140) continue;
+                const ry = getTerrainHeight(rx, rz);
+
+                const rock = new THREE.Mesh(rockGeo, rockMat);
+                rock.position.set(rx, ry + 0.8, rz); rock.scale.set(1 + Math.random(), 0.8 + Math.random(), 1 + Math.random());
+                rock.castShadow = true; scene.add(rock);
+
+                const treeGroup = new THREE.Group();
+                treeGroup.position.set(rx + 4, ry, rz + 4);
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 4), new THREE.MeshLambertMaterial({ color: 0x78350f }));
+                trunk.position.y = 2; trunk.castShadow = true; treeGroup.add(trunk);
+                const leaves = new THREE.Mesh(new THREE.ConeGeometry(3, 6, 8), new THREE.MeshLambertMaterial({ color: 0x15803d }));
+                leaves.position.y = 6; leaves.castShadow = true; treeGroup.add(leaves);
+                scene.add(treeGroup);
+
+                const bush = new THREE.Mesh(bushGeo, bushMat);
+                bush.position.set(rx - 3, ry + 0.8, rz - 3); bush.castShadow = true; scene.add(bush);
+            }
+        }
+        createNatureDetails();
+
+        let timeOfDay = 0;
+        function updateDayNightCycle(delta) {
+            timeOfDay += delta / 900; if (timeOfDay > 1) timeOfDay = 0;
+            const sunAngle = timeOfDay * Math.PI * 2;
+            sunLight.position.x = Math.sin(sunAngle) * 200;
+            sunLight.position.y = Math.cos(sunAngle) * 200;
+
+            const skyColor = new THREE.Color();
+            if (Math.cos(sunAngle) > 0.2) {
+                skyColor.setHex(0x7dd3fc); sunLight.intensity = 0.9; ambientLight.intensity = 0.5;
+            } else if (Math.cos(sunAngle) < -0.2) {
+                skyColor.setHex(0x090d16); sunLight.intensity = 0.05; ambientLight.intensity = 0.15;
+            } else {
+                skyColor.setHex(0xf97316); sunLight.intensity = 0.4; ambientLight.intensity = 0.3;
+            }
+            scene.background = skyColor; scene.fog = new THREE.FogExp2(skyColor, 0.005);
+        }
+
+        // --- 2. PELAAJAN KÄSI JA DETALJOIDUT 3D-ASEET ---
         const cameraGroup = new THREE.Group(); scene.add(cameraGroup); cameraGroup.add(camera);
         const handGroup = new THREE.Group(); camera.add(handGroup); handGroup.position.set(0.25, -0.25, -0.45);
 
@@ -197,12 +246,17 @@
                 const body = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.7), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
                 const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.6), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
                 barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.02, -0.5); body.add(barrel);
+                const scope = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.25), new THREE.MeshLambertMaterial({ color: 0x0284c7 }));
+                scope.rotation.x = Math.PI / 2; scope.position.set(0, 0.07, -0.1); body.add(scope);
                 weaponModelsGroup.add(body);
             } else if (currentWeaponIndex === 1) {
                 const bow = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.02, 8, 24, Math.PI), new THREE.MeshLambertMaterial({ color: 0xb45309 }));
                 bow.rotation.y = Math.PI / 2; bow.position.set(0, 0, -0.2); weaponModelsGroup.add(bow);
             } else if (currentWeaponIndex === 2) {
                 const body = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.4), new THREE.MeshLambertMaterial({ color: 0x78350f }));
+                const b1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.4), new THREE.MeshLambertMaterial({color: 0x111111}));
+                b1.rotation.x = Math.PI / 2; b1.position.set(-0.02, 0.02, -0.3);
+                const b2 = b1.clone(); b2.position.x = 0.02; body.add(b1); body.add(b2);
                 weaponModelsGroup.add(body);
             } else if (currentWeaponIndex === 3) {
                 const body = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.08, 0.25), new THREE.MeshLambertMaterial({ color: 0xffffff }));
@@ -218,7 +272,7 @@
             });
         }
 
-        // --- 3. TIET & KAUPUNKI ---
+        // --- 3. TIET, KATULAMPUT & SUOJATIET ---
         const colliders = []; const wallBoxes = []; const stairSteps = []; const doors = [];
         let score = 0; let hearts = 5;
         let highScore = parseInt(localStorage.getItem('thomas_high_score') || '0');
@@ -229,50 +283,91 @@
         function createCityGrid() {
             const roadMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
             const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
+            const yellowMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+            const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
             for (let i = -180; i <= 180; i += BLOCK_SIZE) {
                 const r1 = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_WIDTH, 420), roadMat);
-                r1.rotation.x = -Math.PI / 2; r1.position.set(i, 0.01, 0); scene.add(r1);
+                r1.rotation.x = -Math.PI / 2; r1.position.set(i, 0.01, 0); r1.receiveShadow = true; scene.add(r1);
+
                 const r2 = new THREE.Mesh(new THREE.PlaneGeometry(420, ROAD_WIDTH), roadMat);
-                r2.rotation.x = -Math.PI / 2; r2.position.set(0, 0.01, i); scene.add(r2);
+                r2.rotation.x = -Math.PI / 2; r2.position.set(0, 0.01, i); r2.receiveShadow = true; scene.add(r2);
+
+                const c1 = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 420), yellowMat);
+                c1.rotation.x = -Math.PI / 2; c1.position.set(i, 0.02, 0); scene.add(c1);
+                const c2 = new THREE.Mesh(new THREE.PlaneGeometry(420, 0.3), yellowMat);
+                c2.rotation.x = -Math.PI / 2; c2.position.set(0, 0.02, i); scene.add(c2);
 
                 for (let j = -180; j <= 180; j += BLOCK_SIZE) {
                     const sw = new THREE.Mesh(new THREE.BoxGeometry(SIDEWALK_WIDTH, 0.2, BLOCK_SIZE - ROAD_WIDTH), sidewalkMat);
                     sw.position.set(i - ROAD_WIDTH/2 - SIDEWALK_WIDTH/2, 0.1, j + BLOCK_SIZE/2); scene.add(sw);
                     const sw2 = sw.clone(); sw2.position.x = i + ROAD_WIDTH/2 + SIDEWALK_WIDTH/2; scene.add(sw2);
                 }
+
+                for (let z = -5; z <= 5; z += 2.5) {
+                    const zebra = new THREE.Mesh(new THREE.PlaneGeometry(1.4, ROAD_WIDTH), whiteMat);
+                    zebra.rotation.x = -Math.PI / 2; zebra.position.set(i + z, 0.03, ROAD_WIDTH / 2 + 2); scene.add(zebra);
+                }
+
+                createStreetLight(i - ROAD_WIDTH/2 - 0.8, i - 15);
+                createStreetLight(i + ROAD_WIDTH/2 + 0.8, i + 15);
             }
+        }
+
+        function createStreetLight(x, z) {
+            const group = new THREE.Group(); group.position.set(x, 0.2, z);
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, 7), new THREE.MeshLambertMaterial({ color: 0x475569 }));
+            pole.position.y = 3.5; pole.castShadow = true; group.add(pole); colliders.push(pole);
+            const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.35), new THREE.MeshBasicMaterial({ color: 0xfef08a }));
+            bulb.position.set(0, 6.6, 0.5); group.add(bulb);
+            scene.add(group);
         }
         createCityGrid();
 
+        // --- 4. YKSITYISKOHTAISET TALOT (PORTAAT & IKKUNAT JOKAISELLA SIVULLA) ---
         function createBuilding(x, z, floors, colorHex) {
             const width = 16, depth = 16, floorHeight = 4;
             const height = floors * floorHeight;
             const bGroup = new THREE.Group(); bGroup.position.set(x, 0, z);
+
             const wallMat = new THREE.MeshLambertMaterial({ color: colorHex });
+            const doorMat = new THREE.MeshLambertMaterial({ color: 0x451a03 });
+            const windowLitMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
             const floorMat = new THREE.MeshLambertMaterial({ color: 0x64748b });
             const doorW = 3, doorH = 3.5;
 
-            const back = new THREE.Mesh(new THREE.BoxGeometry(width, height, 0.5), wallMat); back.position.set(0, height/2, -depth/2); bGroup.add(back);
-            const left = new THREE.Mesh(new THREE.BoxGeometry(0.5, height, depth), wallMat); left.position.set(-width/2, height/2, 0); bGroup.add(left);
-            const right = new THREE.Mesh(new THREE.BoxGeometry(0.5, height, depth), wallMat); right.position.set(width/2, height/2, 0); bGroup.add(right);
-            const frontL = new THREE.Mesh(new THREE.BoxGeometry((width-doorW)/2, height, 0.5), wallMat); frontL.position.set(-width/2 + (width-doorW)/4, height/2, depth/2); bGroup.add(frontL);
-            const frontR = new THREE.Mesh(new THREE.BoxGeometry((width-doorW)/2, height, 0.5), wallMat); frontR.position.set(width/2 - (width-doorW)/4, height/2, depth/2); bGroup.add(frontR);
+            const back = new THREE.Mesh(new THREE.BoxGeometry(width, height, 0.5), wallMat); back.position.set(0, height/2, -depth/2); bGroup.add(back); colliders.push(back);
+            const left = new THREE.Mesh(new THREE.BoxGeometry(0.5, height, depth), wallMat); left.position.set(-width/2, height/2, 0); bGroup.add(left); colliders.push(left);
+            const right = new THREE.Mesh(new THREE.BoxGeometry(0.5, height, depth), wallMat); right.position.set(width/2, height/2, 0); bGroup.add(right); colliders.push(right);
+            const frontL = new THREE.Mesh(new THREE.BoxGeometry((width-doorW)/2, height, 0.5), wallMat); frontL.position.set(-width/2 + (width-doorW)/4, height/2, depth/2); bGroup.add(frontL); colliders.push(frontL);
+            const frontR = new THREE.Mesh(new THREE.BoxGeometry((width-doorW)/2, height, 0.5), wallMat); frontR.position.set(width/2 - (width-doorW)/4, height/2, depth/2); bGroup.add(frontR); colliders.push(frontR);
 
             wallBoxes.push(new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(x, height/2, z - depth/2), new THREE.Vector3(width, height, 0.5)));
             wallBoxes.push(new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(x - width/2, height/2, z), new THREE.Vector3(0.5, height, depth)));
             wallBoxes.push(new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(x + width/2, height/2, z), new THREE.Vector3(0.5, height, depth)));
+            wallBoxes.push(new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(x - width/2 + (width-doorW)/4, height/2, z + depth/2), new THREE.Vector3((width-doorW)/2, height, 0.5)));
+            wallBoxes.push(new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(x + width/2 - (width-doorW)/4, height/2, z + depth/2), new THREE.Vector3((width-doorW)/2, height, 0.5)));
 
             const doorPivot = new THREE.Group(); doorPivot.position.set(-doorW / 2, 0, depth / 2);
-            const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(doorW, doorH, 0.2), new THREE.MeshLambertMaterial({ color: 0x451a03 }));
+            const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(doorW, doorH, 0.2), doorMat);
             doorMesh.position.set(doorW / 2, doorH / 2, 0); doorPivot.add(doorMesh); bGroup.add(doorPivot);
             doors.push({ pivot: doorPivot, isOpen: false, worldPos: new THREE.Vector3(x, 1.5, z + depth / 2) });
 
+            const windowGeo = new THREE.BoxGeometry(1.8, 1.8, 0.6);
             for (let f = 0; f < floors; f++) {
+                const yPos = f * floorHeight + 2;
+
                 if (f > 0) {
                     const floorPart1 = new THREE.Mesh(new THREE.BoxGeometry(width - 7, 0.3, depth - 1), floorMat); floorPart1.position.set(-3, f * floorHeight, 0); bGroup.add(floorPart1); colliders.push(floorPart1);
                     const floorPart2 = new THREE.Mesh(new THREE.BoxGeometry(5, 0.3, (depth - 1) / 2 - 2), floorMat); floorPart2.position.set(4, f * floorHeight, -(depth / 4) - 1); bGroup.add(floorPart2); colliders.push(floorPart2);
                 }
+
+                [-4, 4].forEach(offset => {
+                    const wFront = new THREE.Mesh(windowGeo, windowLitMat); wFront.position.set(offset, yPos, depth / 2); bGroup.add(wFront);
+                    const wBack = new THREE.Mesh(windowGeo, windowLitMat); wBack.position.set(offset, yPos, -depth / 2); bGroup.add(wBack);
+                    const wLeft = new THREE.Mesh(windowGeo, windowLitMat); wLeft.rotation.y = Math.PI / 2; wLeft.position.set(-width / 2, yPos, offset); bGroup.add(wLeft);
+                    const wRight = new THREE.Mesh(windowGeo, windowLitMat); wRight.rotation.y = Math.PI / 2; wRight.position.set(width / 2, yPos, offset); bGroup.add(wRight);
+                });
 
                 if (f < floors - 1) {
                     for (let s = 0; s < 12; s++) {
@@ -286,48 +381,116 @@
             scene.add(bGroup);
         }
 
-        const buildingColors = [0xef4444, 0x3b82f6, 0x10b981, 0xfacc15, 0x8b5cf6, 0xec4899];
+        const buildingColors = [0xef4444, 0x3b82f6, 0x10b981, 0xfacc15, 0x8b5cf6, 0xec4899, 0xf97316, 0x334155];
         for (let bx = -120; bx <= 120; bx += BLOCK_SIZE) {
             for (let bz = -120; bz <= 120; bz += BLOCK_SIZE) {
                 if (Math.abs(bx) < 30 && Math.abs(bz) < 30) continue;
-                createBuilding(bx + 18, bz + 18, 4 + Math.floor(Math.random() * 4), buildingColors[Math.floor(Math.random() * buildingColors.length)]);
+                const floors = Math.random() > 0.4 ? 7 + Math.floor(Math.random() * 5) : 3 + Math.floor(Math.random() * 4);
+                createBuilding(bx + 18, bz + 18, floors, buildingColors[Math.floor(Math.random() * buildingColors.length)]);
             }
         }
 
-        // --- 4. AUTOT ---
+        // --- 5. DETALJOIDUT AUTOT (COCKPIT & PYSÄKÖIDYT) ---
         const cars = []; let playerInCar = null;
         function createDetailedCar(x, z, colorHex, isParked = false, rotY = 0) {
             const carGroup = new THREE.Group(); carGroup.position.set(x, 0.5, z); carGroup.rotation.y = rotY;
-            const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.9, 4.4), new THREE.MeshLambertMaterial({ color: colorHex })); body.position.y = 0.5; carGroup.add(body);
-            const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.8, 2.4), new THREE.MeshLambertMaterial({ color: 0x1e293b, transparent: true, opacity: 0.6 })); cabin.position.set(0, 1.35, -0.2); carGroup.add(cabin);
+            const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.9, 4.4), new THREE.MeshLambertMaterial({ color: colorHex })); body.position.y = 0.5; body.castShadow = true; carGroup.add(body);
+            const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.8, 2.4), new THREE.MeshLambertMaterial({ color: 0x1e293b, transparent: true, opacity: 0.6 })); cabin.position.set(0, 1.35, -0.2); cabin.castShadow = true; carGroup.add(cabin);
+
+            const dash = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.4, 0.6), new THREE.MeshLambertMaterial({ color: 0x0f172a })); dash.position.set(0, 1.1, 0.5); carGroup.add(dash);
+            const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 8, 16), new THREE.MeshLambertMaterial({ color: 0x111111 })); wheel.position.set(-0.45, 1.25, 0.35); wheel.rotation.x = Math.PI / 4; carGroup.add(wheel);
+
             scene.add(carGroup);
             cars.push({ group: carGroup, speed: 0, angle: rotY, isDriving: false, isParked: isParked });
             colliders.push(body);
         }
-        createDetailedCar(0, -60, 0xef4444, false); createDetailedCar(-12, 15, 0xfacc15, true, Math.PI / 2);
 
-        // --- 5. IHMISET & PAHISET ---
+        createDetailedCar(0, -60, 0xef4444, false);
+        createDetailedCar(-60, 0, 0x3b82f6, false);
+        createDetailedCar(60, 60, 0x10b981, false);
+
+        for (let px = -120; px <= 120; px += 40) {
+            createDetailedCar(px, 9, 0xfacc15, true, Math.PI / 2);
+            createDetailedCar(px, -9, 0x8b5cf6, true, Math.PI / 2);
+            createDetailedCar(9, px, 0xf97316, true, 0);
+        }
+
+        // --- 6. RUNSAASTI IHMISIÄ (55+) ---
         const pedestrians = [];
-        function createPedestrian(x, z, isEvil) {
+        function createFaceCanvas(isEvil) {
+            const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffdbac'; ctx.beginPath(); ctx.arc(64, 64, 50, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.arc(45, 50, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(83, 50, 6, 0, Math.PI * 2); ctx.fill();
+
+            if (isEvil) {
+                ctx.strokeStyle = '#000000'; ctx.lineWidth = 6;
+                ctx.beginPath(); ctx.moveTo(30, 35); ctx.lineTo(55, 45); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(98, 35); ctx.lineTo(73, 45); ctx.stroke();
+                ctx.beginPath(); ctx.arc(64, 90, 20, Math.PI, 0); ctx.stroke();
+            } else {
+                ctx.strokeStyle = '#000000'; ctx.lineWidth = 5;
+                ctx.beginPath(); ctx.arc(64, 65, 22, 0.2, Math.PI - 0.2); ctx.stroke();
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createDetailedPedestrian(x, z, isEvil, isChild = false) {
             const pGroup = new THREE.Group(); pGroup.position.set(x, 0.1, z);
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.85, 0.35), new THREE.MeshLambertMaterial({ color: isEvil ? 0x991b1b : 0x0284c7 })); torso.position.y = 1.35; pGroup.add(torso);
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.42, 0.42), new THREE.MeshLambertMaterial({ color: 0xffdbac })); head.position.y = 2.05; pGroup.add(head);
+            const scale = isChild ? 0.65 : 1.0;
+
+            const skinMat = new THREE.MeshLambertMaterial({ color: 0xffdbac });
+            const clothMat = new THREE.MeshLambertMaterial({ color: isEvil ? 0x991b1b : (isChild ? 0xfacc15 : 0x0284c7) });
+            const pantMat = new THREE.MeshLambertMaterial({ color: isEvil ? 0x0f172a : 0x334155 });
+
+            const legPivot1 = new THREE.Group(); legPivot1.position.set(-0.16 * scale, 0.9 * scale, 0); pGroup.add(legPivot1);
+            const leg1 = new THREE.Mesh(new THREE.BoxGeometry(0.2 * scale, 0.9 * scale, 0.2 * scale), pantMat); leg1.position.y = -0.45 * scale; legPivot1.add(leg1);
+
+            const legPivot2 = new THREE.Group(); legPivot2.position.set(0.16 * scale, 0.9 * scale, 0); pGroup.add(legPivot2);
+            const leg2 = new THREE.Mesh(new THREE.BoxGeometry(0.2 * scale, 0.9 * scale, 0.2 * scale), pantMat); leg2.position.y = -0.45 * scale; legPivot2.add(leg2);
+
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.55 * scale, 0.85 * scale, 0.35 * scale), clothMat); torso.position.y = 1.35 * scale; torso.castShadow = true; pGroup.add(torso);
+
+            const armPivot1 = new THREE.Group(); armPivot1.position.set(-0.38 * scale, 1.7 * scale, 0); pGroup.add(armPivot1);
+            const arm1 = new THREE.Mesh(new THREE.BoxGeometry(0.16 * scale, 0.75 * scale, 0.16 * scale), skinMat); arm1.position.y = -0.37 * scale; armPivot1.add(arm1);
+
+            const armPivot2 = new THREE.Group(); armPivot2.position.set(0.38 * scale, 1.7 * scale, 0); pGroup.add(armPivot2);
+            const arm2 = new THREE.Mesh(new THREE.BoxGeometry(0.16 * scale, 0.75 * scale, 0.16 * scale), skinMat); arm2.position.y = -0.37 * scale; armPivot2.add(arm2);
+
+            const faceTex = createFaceCanvas(isEvil);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.42 * scale, 0.42 * scale, 0.42 * scale), [
+                skinMat, skinMat, skinMat, skinMat,
+                new THREE.MeshLambertMaterial({ map: faceTex }), skinMat
+            ]);
+            head.position.y = 2.05 * scale; pGroup.add(head);
 
             const labelCanvas = document.createElement('canvas'); labelCanvas.width = 64; labelCanvas.height = 64;
-            const lCtx = labelCanvas.getContext('2d'); lCtx.font = '40px sans-serif'; lCtx.fillText(isEvil ? '😈' : '😊', 10, 45);
-            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(labelCanvas) })); sprite.position.y = 2.6; sprite.scale.set(0.7, 0.7, 1); pGroup.add(sprite);
+            const lCtx = labelCanvas.getContext('2d'); lCtx.font = '40px sans-serif';
+            lCtx.fillText(isEvil ? '😈' : '😊', 10, 45);
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(labelCanvas) }));
+            sprite.position.y = (2.6 * scale); sprite.scale.set(0.7, 0.7, 1); pGroup.add(sprite);
 
             scene.add(pGroup);
-            pedestrians.push({ group: pGroup, isEvil: isEvil, speed: 0.03, sidewalkX: x, torsoMesh: torso, headMesh: head, lastAttack: 0 });
+            pedestrians.push({
+                group: pGroup, isEvil: isEvil, speed: 0.03 + Math.random() * 0.02, sidewalkX: x,
+                animTime: Math.random() * 10, leg1: legPivot1, leg2: legPivot2, arm1: armPivot1, arm2: armPivot2,
+                torsoMesh: torso, headMesh: head, lastAttack: 0
+            });
             colliders.push(torso);
         }
-        for (let i = 0; i < 35; i++) { createPedestrian((Math.random() > 0.5 ? 1 : -1) * (ROAD_WIDTH / 2 + 2), -120 + Math.random() * 240, Math.random() < 0.4); }
 
-        // --- 6. AMPUMINEN & DAMAGE ---
+        for (let i = 0; i < 55; i++) {
+            createDetailedPedestrian((Math.random() > 0.5 ? 1 : -1) * (ROAD_WIDTH / 2 + 2), -130 + Math.random() * 260, Math.random() < 0.4, Math.random() < 0.3);
+        }
+
+        // --- 7. AMPUMINEN & DAMAGE ---
         const raycaster = new THREE.Raycaster();
+        let recoilTimer = 0;
+
         function shoot() {
             if (playerInCar || hearts <= 0) return;
-            handGroup.position.z = -0.3; setTimeout(() => handGroup.position.z = -0.45, 100);
+            handGroup.position.z = -0.3; recoilTimer = 8;
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             const pedMeshes = []; pedestrians.forEach(p => pedMeshes.push(p.torsoMesh, p.headMesh));
             const intersects = raycaster.intersectObjects([...colliders, ...pedMeshes], true);
@@ -348,22 +511,23 @@
             document.getElementById('hearts').innerText = str;
             if (hearts <= 0) { document.getElementById('final-score').innerText = score; document.getElementById('final-highscore').innerText = highScore; document.getElementById('game-over-screen').style.display = 'block'; }
         }
+
         function updateScoreUI() {
             document.getElementById('score').innerText = score;
             if (score > highScore) { highScore = score; localStorage.setItem('thomas_high_score', highScore); document.getElementById('high-score').innerText = highScore; }
         }
+
         function restartGame() { hearts = 5; score = 0; updateHearts(0); updateScoreUI(); cameraGroup.position.set(0, 1.8, 15); document.getElementById('game-over-screen').style.display = 'none'; }
 
-        // --- 7. MOBIILIN KOSKETUSOHJAIMET (JOYSTICK & KAMERA) ---
-        let touchMoveX = 0, touchMoveY = 0;
-        let isGameStarted = false;
+        // --- 8. OHJAIMET MOBIILILLE JA TIETOKONEELLE ---
+        let touchMoveX = 0, touchMoveY = 0, isGameStarted = false;
 
         document.getElementById('instructions').addEventListener('click', () => {
             document.getElementById('instructions').style.display = 'none'; isGameStarted = true;
             if (!isMobile) document.body.requestPointerLock();
         });
 
-        // JOYSTICK (Vasen alakulma)
+        // JOYSTICK
         const joyZone = document.getElementById('joystick-zone');
         const joyKnob = document.getElementById('joystick-knob');
         let joyTouchId = null, joyStartX = 0, joyStartY = 0;
@@ -394,7 +558,7 @@
         };
         window.addEventListener('touchend', resetJoy); window.addEventListener('touchcancel', resetJoy);
 
-        // KAMERAN PYYHKÄISY (Oikea ruudunpuolisko)
+        // PYYHKÄISY-KAMERA
         let yaw = 0, pitch = 0, lookTouchId = null, lastLookX = 0, lastLookY = 0;
         window.addEventListener('touchstart', (e) => {
             for (let t of e.changedTouches) {
@@ -416,13 +580,13 @@
         const resetLook = (e) => { for (let t of e.changedTouches) { if (t.identifier === lookTouchId) lookTouchId = null; } };
         window.addEventListener('touchend', resetLook); window.addEventListener('touchcancel', resetLook);
 
-        // KOSKETUSNAPIT
+        // PAINIKKEET
         document.getElementById('btn-shoot').addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
         document.getElementById('btn-jump').addEventListener('touchstart', (e) => { e.preventDefault(); if (isGrounded && !playerInCar) { playerVelY = 0.18; isGrounded = false; } });
         document.getElementById('btn-car').addEventListener('touchstart', (e) => { e.preventDefault(); toggleCarDrive(); });
         document.getElementById('btn-door').addEventListener('touchstart', (e) => { e.preventDefault(); checkDoorInteraction(true); });
 
-        // NÄPPÄIMISTÖ & HIIRI (PC)
+        // NÄPPÄIMISTÖ & HIIRI (Tietokoneelle)
         document.addEventListener('mousedown', (e) => { if (e.button === 0 && !isMobile) shoot(); });
         document.addEventListener('mousemove', (e) => {
             if (document.pointerLockElement === document.body) {
@@ -433,6 +597,10 @@
         const keys = {};
         document.addEventListener('keydown', (e) => {
             keys[e.code] = true;
+            if (e.code === 'Digit1') selectWeapon(0);
+            if (e.code === 'Digit2') selectWeapon(1);
+            if (e.code === 'Digit3') selectWeapon(2);
+            if (e.code === 'Digit4') selectWeapon(3);
             if (e.code === 'KeyE') checkDoorInteraction(true);
             if (e.code === 'KeyF') toggleCarDrive();
             if (e.code === 'Space' && isGrounded && !playerInCar) { playerVelY = 0.18; isGrounded = false; }
@@ -448,10 +616,13 @@
             if (playerInCar) {
                 cameraGroup.position.copy(playerInCar.group.position).add(new THREE.Vector3(2, 1.5, 0));
                 playerInCar.isDriving = false; playerInCar = null; handGroup.visible = true;
+                showFeedback("NOUSTIIN AUTOSTA 🚶", "#38bdf8");
             } else {
                 for (let car of cars) {
                     if (cameraGroup.position.distanceTo(car.group.position) < 4.5) {
-                        playerInCar = car; car.isDriving = true; handGroup.visible = false; break;
+                        playerInCar = car; car.isDriving = true; handGroup.visible = false;
+                        showFeedback("VARASTETTU AUTO! AJA WASD / JOYSTICK 🚗", "#fde047");
+                        break;
                     }
                 }
             }
@@ -466,24 +637,41 @@
             });
         }
 
-        // --- 8. PELISILMUKKA ---
+        // --- 9. PELISILMUKKA ---
         let playerVelY = 0, isGrounded = true; cameraGroup.position.set(0, 1.8, 15);
 
         function updateGame(delta, now) {
             if (hearts <= 0 || !isGameStarted) return;
+            updateDayNightCycle(delta);
 
             camera.rotation.order = 'YXZ'; camera.rotation.y = yaw; camera.rotation.x = pitch;
 
-            // Jalankulkijoiden hyökkäykset
-            pedestrians.forEach(p => {
-                p.group.position.z += p.speed;
-                if (Math.abs(p.group.position.z) > 130) { p.speed *= -1; p.group.rotation.y += Math.PI; }
-                if (p.isEvil && !playerInCar && cameraGroup.position.distanceTo(p.group.position) < 2.0 && now - p.lastAttack > 1500) {
-                    p.lastAttack = now; updateHearts(-1); showFeedback("PAHIS ISKI! -1 ❤️", "#ef4444");
+            // Autot
+            cars.forEach(car => {
+                if (!car.isDriving && !car.isParked) {
+                    car.group.translateZ(-0.15);
+                    if (car.group.position.length() > 220) car.group.position.set(0, 0.5, -60);
                 }
             });
 
-            // Autolla ajo
+            // Jalankulkijat
+            pedestrians.forEach(p => {
+                p.group.position.z += p.speed;
+                p.animTime += delta * 8;
+                const swing = Math.sin(p.animTime) * 0.5;
+                p.leg1.rotation.x = swing; p.leg2.rotation.x = -swing;
+                p.arm1.rotation.x = -swing; p.arm2.rotation.x = swing;
+
+                if (Math.abs(p.group.position.z) > 130) { p.speed *= -1; p.group.rotation.y += Math.PI; }
+
+                if (p.isEvil && !playerInCar && cameraGroup.position.distanceTo(p.group.position) < 2.0 && now - p.lastAttack > 1500) {
+                    p.lastAttack = now; updateHearts(-1);
+                    document.getElementById('damage-flash').style.display = 'block'; setTimeout(() => document.getElementById('damage-flash').style.display = 'none', 200);
+                    showFeedback("PAHIS ISKI! -1 ❤️", "#ef4444");
+                }
+            });
+
+            // Autolla ajo (Cockpit view)
             if (playerInCar) {
                 const car = playerInCar;
                 let forward = keys['KeyW'] ? 1 : (keys['KeyS'] ? -1 : -touchMoveY);
@@ -499,7 +687,7 @@
                 return;
             }
 
-            // Kävely (PC WASD + Mobiili Joystick)
+            // Kävely
             let moveX = (keys['KeyD'] ? 1 : 0) - (keys['KeyA'] ? 1 : 0) + touchMoveX;
             let moveZ = (keys['KeyS'] ? 1 : 0) - (keys['KeyW'] ? 1 : 0) + touchMoveY;
 
@@ -530,6 +718,10 @@
             requestAnimationFrame(animate);
             updateGame((now - lastTime) / 1000, now);
             lastTime = now;
+
+            if (recoilTimer > 0) { recoilTimer--; handGroup.position.z += 0.01; }
+            else { handGroup.position.z = -0.45; }
+
             renderer.render(scene, camera);
         }
         animate(performance.now());
